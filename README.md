@@ -359,25 +359,41 @@ So if we can satisfy those constraints, we can get the shell more easily.
 ## Hijack hook function
 
 **Hook Function**
-Inside glibc, global variables exist, such as:
+
+Inside glibc, or malloc.h, global variables exist, such as:
 * _ _malloc_hook
 * _ _free_hook
 * _ _realloc_hook
-These are **function pointers** used for debugging memory allocators. They are  <mark>NULL</mark> by default. Because they are global variables in writable memory, an attacker can write an address to them.
+
+These are **function pointers** used for debugging memory allocators. They are  *NULL* by default. Because they are global variables in writable memory, an attacker can write an address to them.
+>[!NOTE] glibc 2.34+ removed these hooks.
 
 ```
 // Normal glibc behavior:
-free(ptr);  // Calls __libc_free() internally
+free(ptr);  // Calls \_\_libc_free() internally
 
-// After attacker overwrites __free_hook:
-__free_hook = 0xdeadbeef;  // Attacker's address
+// After attacker overwrites \_\_free_hook:
+\_\_free_hook = 0xdeadbeef;  // Attacker's address
 
 // Now when victim calls:
 free(ptr);  
-// glibc executes: __free_hook(ptr, ...) 
+// glibc executes: \_\_free_hook(ptr, ...) 
 // Jumps to 0xdeadbeef (attacker's code/gadget)
 ```
 
+**Hijacking Explained**
+
+When `free()` is called, glibc does this:
+```
+if (\_\_free_hook !NULL)
+    (*\_\_free_hook)(ptr, return_address);
+```
+
+If you overwrite `\_\_free_hook` with the address of a gadget, then the next time the program calls `free()`, glibc jumps to your payload.
+
+**Requirements for the attack**
+
+1. You must know the **libc base address** to compute the absolute address of `\_\_free_hook` or `__malloc_hook`
 
 **constraints**:
 
@@ -389,11 +405,6 @@ By manual:
 
 > The GNU C Library lets you modify the behavior of `malloc`, `realloc`, and `free` by specifying appropriate hook functions. You can use these hooks to help you debug programs that use dynamic memory allocation, for example.
 
-There are hook variables declared in malloc.h and their default values are `0x0`.
-
-* `__malloc_hook`
-* `__free_hook`
-* ...
 
 Since they are used to help us debug programs, they are writable during the execution.
 
