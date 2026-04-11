@@ -358,8 +358,6 @@ So if we can satisfy those constraints, we can get the shell more easily.
 
 ## Hijack hook function
 
-**Hook Function**
-
 Inside glibc, or malloc.h, global variables exist, such as:
 * _ _malloc_hook
 * _ _free_hook
@@ -381,7 +379,7 @@ free(ptr);
 // Jumps to 0xdeadbeef (attacker's code/gadget)
 ```
 
-**Hijacking Explained**
+### Hijacking Explained
 
 When `free()` is called, glibc does this:
 ```
@@ -391,7 +389,7 @@ if (_ _free_hook !NULL)
 
 If you overwrite `_ _free_hook` with the address of a gadget, then the next time the program calls `free()`, glibc jumps to your payload.
 
-**Requirements for the attack**
+### Requirements for the attack
 
 1. You must know the **libc base address** to compute the absolute address of `_ _free_hook` or `_ _malloc_hook`.
 2. You must have arbitrary write - be able to write a value of a memory address or a write-what-primitive.
@@ -403,13 +401,27 @@ If you overwrite `_ _free_hook` with the address of a gadget, then the next time
    int buffer[10];
    buffer[user_index] = user_value;  // No bounds checking
 ```
-3. The program uses `malloc`, `free`, or `realloc`.
- 
-**constraints**:
 
-* Have libc base address
-* Write to arbitrary address
-* The program uses `malloc`, `free` or `realloc`.
+3. The program uses `malloc`, `free`, or `realloc`.
+
+#### Example of Vulnerability
+```
+// The "write-what-where" vulnerability from use-after-free
+struct node {
+    void (*callback)(int);
+    int data;
+};
+
+struct node* ptr = malloc(sizeof(struct node));
+free(ptr);
+// Attacker reuses the freed memory
+struct attacker_control* evil = malloc(sizeof(struct attacker_control));
+evil->target_address = &__free_hook;  // Where
+evil->target_value = shellcode_address;  // What
+
+// When the original code uses the freed pointer:
+ptr->callback(ptr->data);  // Write-what-where primitive triggers
+```
 
 By manual:
 
