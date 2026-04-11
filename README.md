@@ -21,23 +21,23 @@ CTF-pwn-tips
 
 ## Overflow
 
-Assume that: `char buf[40]` and `signed int num`
-The following are unsafe input functions.
+`char buf[40]` has 39 bytes for characters and 1 byte for \0 null terminator.
+`signed int num` is a 4 byte integer, negative or positive.
+The following are unsafe input functions:
 
-### scanf
+### 1. scanf
 
-* `scanf("%s", buf)`
+a. `scanf("%s", buf)`
     * `%s` doesn't have bounds check which leads to an overflow.
     * **pwnable**
 
-* `scanf("%39s", buf)`
+b. `scanf("%39s", buf)`
     * `%39s` only takes 39 bytes from the input and puts NULL byte at the end of input.
-    * **useless**
+    * *not pwnable* becuase buf can hold up to 40 bytes. 
 
-* `scanf("%40s", buf)`
-    * At first sight, it seems reasonable.(seems)
-    * It takes **40 bytes** from input, but it also **puts NULL byte at the end of input.**
-    * Therefore, it has **off-by-one-byte-overflow**.
+c. `scanf("%40s", buf)`
+    * It takes **40 bytes** from input, but it also **adds a NULL byte at the end of input.**
+    * Therefore, it has **off-by-one-byte-overflow** since buf[40] = '\0' <-- writes past buf (stack overflow). 
     * **pwnable**
 
 * `scanf("%d", &num)`
