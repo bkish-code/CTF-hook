@@ -21,50 +21,58 @@ CTF-pwn-tips
 
 ## Overflow
 
-`char buf[40]` has 39 bytes for characters and 1 byte for \0 null terminator.
-`signed int num` is a 4 byte integer, negative or positive.
-The following are unsafe input functions:
+In the demonstrations, use the following: <br>
+`char buf[40]` - has 39 bytes for characters and 1 byte for \0 null terminator. <br>
+`signed int num` - holds 4 byte integer, negative or positive. <br>
+Note the following unsafe input functions:
 
-### 1. scanf
+### scanf
 
-a. `scanf("%s", buf)`
-    * `%s` doesn't have bounds check which leads to an overflow.
-    * **pwnable**
+   a. `scanf("%s", buf)`
+       * `%s` doesn't have bounds check which leads to an overflow.
+       * **pwnable** if we enter over 39 characters.
 
-b. `scanf("%39s", buf)`
-    * `%39s` only takes 39 bytes from the input and puts NULL byte at the end of input.
-    * *not pwnable* becuase buf can hold up to 40 bytes. 
+   b. `scanf("%39s", buf)`
+       * `%39s` reads only 39 bytes from the user input and puts NULL byte at the end of input.
+       * *not pwnable* becuase buf can hold up to 40 bytes. 
 
-c. `scanf("%40s", buf)`
-    * It takes **40 bytes** from input, but it also **adds a NULL byte at the end of input.**
-    * Therefore, it has **off-by-one-byte-overflow** since buf[40] = '\0' <-- writes past buf (stack overflow). 
-    * **pwnable**
+   c. `scanf("%40s", buf)`
+       * It reads **40 bytes** from user input, but it also **adds a NULL byte at the end of input** for a total of 41 bytes.
+       * Therefore, it has **off-by-one-byte-overflow** since buf[40] = '\0' <-- writes past buf (stack overflow). 
+       * **pwnable** as '\0' overwrites whatever follows the buf array.
 
-* `scanf("%d", &num)`
-    * Used with `alloca(num)`
-        * Since `alloca` allocates memory from the stack frame of the caller, there is an instruction `sub esp, eax` to achieve that.
-        * If we make num negative, it will have overlapped stack frame.
-        * E.g. [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
-    * Use num to access some data structures
-        * In most of the time, programs only check the higher bound and forget to make num unsigned.
-        * Making num negative may let us overwrite some important data to control the world!
+   d. `scanf("%d", &num)`
+       * This allows the user to enter a negative or positive integer. 
+	   * This function is used with `alloca(num)`
+           * alloca() is designed for positive numbers only. It makes the stack grow downward, or from higher to lower memory addresses.
+		   	   * It uses `sub esp, eax  ; eax = n`
+		   * alloca(negative_number) makes the stack grow upward, towards higher memory addresses, in the wrong direction.
+		   * alloca does not check if numbers are > 0; *num* should be an *unsigned integer*. 
+        * If num is negative, it will overwrite the stack frame.
+           * E.g. [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
 
 ### gets
 
-* `gets(buf)`
-    * No boundary check.
-    * **pwnable**
+a. `gets(buf)`
+    * No boundary check. It continues to read user input until it sees '\n'.
+    * Like scanf, it read user input but stops until it sees '\n'.
+    * **pwnable** as it continues to read user input - past whatever buf can store.
 
-* `fgets(buf, 40, stdin)`
-    * It takes only **39 bytes** from the input and puts NULL byte at the end of input.
-    * **useless**
+b. `fgets(buf, 40, stdin)`
+    * It takes only **39 bytes** from the user input and puts NULL byte at the end of input.
+    * **useless** since buf can hold 40 bytes.
 
 ### read
 
 * `read(stdin, buf, 40)`
-    * It takes **40 bytes** from the input, and it doesn't put NULL byte at the end of input.
+    * It copies **40 bytes** from the user input into buf. That's it.
+    * It does **not** put a NULL byte at the end of input.
+    * It does **not** stop for '\n'.
+    * It does **not** check for overflow.
     * It seems safe, but it may have **information leak**.
-    * **leakable**
+    * **leakable** if `printf("%s\n,buf);` and there is no '\n'.
+       * printf continues to print until it encounters a '\n'.
+       * It can read stack content, registers, canary, return address, etc.
 
 E.g.
 
@@ -79,27 +87,29 @@ E.g.
 * In this case, we can get `'A'*40 + '\xcd\xe1\xff\xff\xff\x7f'`.
 
 * `fread(buf, 1, 40, stdin)`
-    * Almost the same as `read`.
-    * **leakable**
+    * The same as `read` but reads raw bytes from a `FILE*` stream.
+    * **leakable** as it does not add null terminator, stop at newline, and does not check for overflow.
 
 ### strcpy
 
-Assume that there is another buffer: `char buf2[60]`
+Let's use a second buffer: `char buf2[60]`
 
 * `strcpy(buf, buf2)`
-    * No boundary check.
-    * It copies the content of buf2(until reaching NULL byte) which may be longer than `length(buf)` to buf.
-    * Therefore, it may happen overflow.
-    * **pwnable**
+    * The function does not have boundary checks.
+    * So, it copies the content of buf2, 60 bytes or until it reaches a NULL byte. But buf is only 40 bytes long.
+    * All of buf2 is copied into buf, including NULL byte which gets added at the end, past buf. 
+    * Therefore, it could overflow by up to 20 bytes.
+    * **pwnable** as overflow begins at buf[40] = buf2[40]. Overflow ends at buf[40+] or buf[60] = '\0'.
 
 * `strncpy(buf, buf2, 40)` && `memcpy(buf, buf2, 40)`
-    * It copies 40 bytes from buf2 to buf, but it won't put NULL byte at the end.
-    * Since there is no NULL byte to terminate, it may have **information leak**.
-    * **leakable**
+    * It copies 40 bytes from buf2 to buf, but it does **not** put a NULL byte at the end.
+    * Without a NULL byte at the end, there could be an **information leak**.
+    * **leakable** if `printf("%s\n", buf);` is used and NULL bytes was not added.
+       * printf continues to print until it encounters a NULL byte.
 
 ### strcat
 
-Assume that there is another buffer: `char buf2[60]`
+Let's continue to use `char buf[40]` and a second buffer: `char buf2[60]`
 
 * `strcat(buf, buf2)`
     * Of course, it may cause **overflow** if `length(buf)` isn't large enough.
