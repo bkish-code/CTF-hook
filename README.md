@@ -372,27 +372,74 @@ addr = LIBC.rand() & 0xfffff000
 
 ## Use one-gadget-RCE instead of system
 
+To get a shell, we need to call `system('/bin/sh')`. This requires us to manipulate parameters and hijack a function to `system`. However, we cannot always manipulate the parameters.  
+
+Instead, we can use a one‑gadget RCE instead of calling system("/bin/sh"). This technique avoids the need of the /bin/sh string. 
+
 **Requirements**:
 
-1. Have libc base address
-2. Write to arbitrary address
+1. You must know the libc base address <br>
+   One‑gadgets live inside libc, so their absolute address is:
 
-Pwnable challenge often need to call `system('/bin/sh')` to get a shell. If we want to call that, we have to manipulate the parameters and hijack some functions to `system`. What if we **can't** manipulate the parameter?
+   ```one_gadget_addr = libc_base + offset_of_one_gadget```
+   
+   If you don’t know the libc base, you cannot compute the real address of the gadget.
+
+2. You must be able to write to an arbitrary address.
+   To trigger the one‑gadget, you overwrite a function pointer inside libc, usually:
+   * __free_hook
+   * __malloc_hook (older glibc)
+   * sometimes vtable pointers or other hooks
+
+   Example:
+   
+   ```
+   __free_hook = one_gadget_addr
+   ```
+   
+   Then when the program calls:
+
+   ```
+   free(ptr);
+   ```
+
+   glibc internally does:
+
+   ```
+   if (__free_hook)
+    __free_hook(ptr);
+   ```
+
+   So execution jumps directly into your one‑gadget.
+
+   This gives you a shell without needing:
+   * a pop rdi; ret gadget
+   * a /bin/sh string
+   * a full ROP chain
 
 Use [one-gadget-RCE](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf)!
 
-With **one-gadget-RCE**, we can just hijack `.got.plt` or something we can use to control eip to make program jump to **one-gadget**, but there are some constraints that need satisfying before using it.
+With **one-gadget-RCE**, we can just hijack `.got.plt` or something that controls eip to make program jump to **one-gadget**.
 
-There are lots of **one-gadgets** in libc. Each one has different constraints but those are similar. Each constraint is about the state of registers.
+A one‑gadget is a location inside libc where the instructions already perform:
 
-E.g.
+```execve("/bin/sh", rdi, rsi)```
+
+or a variant of it.
+
+These gadgets are placed inside libc and can be found with tools like one_gadget. They work only if certain registers satisfy constraints (e.g., rsi == NULL, rdx == NULL, etc.). When triggered inside glibc internals (like during free()), those constraints are naturally satisfied.
+
+There are lots of **one-gadgets** in libc. Each one has different constraints. Each constraint is about the state of registers.
+
+For example,
 
 * ebx is the address of `rw-p` area of libc
 * [esp+0x34] == NULL
 
-How can we get these constraints? Here is an useful tool [one_gadget](https://github.com/david942j/one_gadget) !!!!
+**Tool to get contraints:**  [one_gadget](https://github.com/david942j/one_gadget) 
 
-So if we can satisfy those constraints, we can get the shell more easily.
+
+If we can satisfy those constraints, we can get a shell.
 
 ## Hijack hook function
 
