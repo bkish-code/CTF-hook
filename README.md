@@ -400,7 +400,7 @@ If you overwrite `_ _free_hook` with the address of a gadget, then the next time
    // Real-world example: buffer overflow with index control
    int buffer[10];
    buffer[user_index] = user_value;  // No bounds checking
-```
+   ```
 
 3. The program uses `malloc`, `free`, or `realloc`.
 
