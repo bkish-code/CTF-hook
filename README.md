@@ -334,12 +334,12 @@ addr = LIBC.rand() & 0xfffff000
 
 ## Use one-gadget-RCE instead of system
 
-**constraints**:
+**Requirements**:
 
-* Have libc base address
-* Write to arbitrary address
+1. Have libc base address
+2. Write to arbitrary address
 
-Almost every pwnable challenge needs to call `system('/bin/sh')` in the end of the exploit, but if we want to call that, we have to manipulate the parameters and, of course, hijack some functions to `system`. What if we **can't** manipulate the parameter?
+Pwnable challenge often need to call `system('/bin/sh')` to get a shell. If we want to call that, we have to manipulate the parameters and hijack some functions to `system`. What if we **can't** manipulate the parameter?
 
 Use [one-gadget-RCE](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf)!
 
@@ -422,6 +422,18 @@ evil->target_value = shellcode_address;  // What
 // When the original code uses the freed pointer:
 ptr->callback(ptr->data);  // Write-what-where primitive triggers
 ```
+
+### Exploitation Steps
+1. Leak a libc address.
+2. Compute libc base.
+3. Compute the address of `_ _free_hook`:
+   `free_hook = libc_base + offset(_ _free_hook)`
+4. Compute the address of one-gadget:
+   `one_gadget = libc_base + offset(one_gadget)`.
+5. Use the arbitrary write to overwrite:
+   `*(void **)free_hook = one_gadget`.
+6. Trigger the `free()` call in the program.
+7. Get the Shell.
 
 By manual:
 
