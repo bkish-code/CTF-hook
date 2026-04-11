@@ -22,11 +22,12 @@ CTF-pwn-tips
 ## Overflow
 
 Assume that: `char buf[40]` and `signed int num`
+The following are unsafe input functions.
 
 ### scanf
 
 * `scanf("%s", buf)`
-    * `%s` doesn't have boundary check.
+    * `%s` doesn't have bounds check which leads to an overflow.
     * **pwnable**
 
 * `scanf("%39s", buf)`
@@ -36,7 +37,7 @@ Assume that: `char buf[40]` and `signed int num`
 * `scanf("%40s", buf)`
     * At first sight, it seems reasonable.(seems)
     * It takes **40 bytes** from input, but it also **puts NULL byte at the end of input.**
-    * Therefore, it has **one-byte-overflow**.
+    * Therefore, it has **off-by-one-byte-overflow**.
     * **pwnable**
 
 * `scanf("%d", &num)`
