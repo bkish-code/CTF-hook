@@ -358,6 +358,27 @@ So if we can satisfy those constraints, we can get the shell more easily.
 
 ## Hijack hook function
 
+**Hook Function**
+Inside glibc, global variables exist, such as:
+* _ _malloc_hook
+* _ _free_hook
+* _ _realloc_hook
+These are **function pointers** used for debugging memory allocators. They are  <mark>NULL</mark> by default. Because they are global variables in writable memory, an attacker can write an address to them.
+
+```
+// Normal glibc behavior:
+free(ptr);  // Calls __libc_free() internally
+
+// After attacker overwrites __free_hook:
+__free_hook = 0xdeadbeef;  // Attacker's address
+
+// Now when victim calls:
+free(ptr);  
+// glibc executes: __free_hook(ptr, ...) 
+// Jumps to 0xdeadbeef (attacker's code/gadget)
+```
+
+
 **constraints**:
 
 * Have libc base address
