@@ -428,9 +428,9 @@ ptr->callback(ptr->data);  // Write-what-where primitive triggers
 2. Compute libc base.
 3. Compute the address of `_ _free_hook`:
    `free_hook = libc_base + offset(_ _free_hook)`
-4. Compute the address of one-gadget:
+4. Compute the address of one-gadget:<br>
    `one_gadget = libc_base + offset(one_gadget)`.
-5. Use the arbitrary write to overwrite:
+5. Use the arbitrary write to overwrite:<br>
    `*(void **)free_hook = one_gadget`.
 6. Trigger the `free()` call in the program.
 7. Get the Shell.
