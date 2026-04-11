@@ -364,20 +364,20 @@ Inside glibc, or malloc.h, global variables exist, such as:
 * _ _malloc_hook
 * _ _free_hook
 * _ _realloc_hook
+>[!NOTE] glibc 2.34+ removed these hooks.
 
 These are **function pointers** used for debugging memory allocators. They are  *NULL* by default. Because they are global variables in writable memory, an attacker can write an address to them.
->[!NOTE] glibc 2.34+ removed these hooks.
 
 ```
 // Normal glibc behavior:
-free(ptr);  // Calls \_\_libc_free() internally
+free(ptr);  // Calls _ _libc_free() internally
 
-// After attacker overwrites \_\_free_hook:
-\_\_free_hook = 0xdeadbeef;  // Attacker's address
+// After attacker overwrites _ _free_hook:
+_ _free_hook = 0xdeadbeef;  // Attacker's address
 
 // Now when victim calls:
 free(ptr);  
-// glibc executes: \_\_free_hook(ptr, ...) 
+// glibc executes: _ _free_hook(ptr, ...) 
 // Jumps to 0xdeadbeef (attacker's code/gadget)
 ```
 
@@ -385,16 +385,26 @@ free(ptr);
 
 When `free()` is called, glibc does this:
 ```
-if (\_\_free_hook !NULL)
-    (*\_\_free_hook)(ptr, return_address);
+if (_ _free_hook !NULL)
+    (*_ _free_hook)(ptr, return_address);
 ```
 
-If you overwrite `\_\_free_hook` with the address of a gadget, then the next time the program calls `free()`, glibc jumps to your payload.
+If you overwrite `_ _free_hook` with the address of a gadget, then the next time the program calls `free()`, glibc jumps to your payload.
 
 **Requirements for the attack**
 
-1. You must know the **libc base address** to compute the absolute address of `\_\_free_hook` or `__malloc_hook`
-
+1. You must know the **libc base address** to compute the absolute address of `_ _free_hook` or `_ _malloc_hook`.
+2. You must have arbitrary write - be able to write a value of a memory address or a write-what-primitive.
+   ```
+   // Vulnerability: arbitrary write primitive
+   *attacker_controlled_address = attacker_controlled_value;
+   
+   // Real-world example: buffer overflow with index control
+   int buffer[10];
+   buffer[user_index] = user_value;  // No bounds checking
+```
+3. The program uses `malloc`, `free`, or `realloc`.
+ 
 **constraints**:
 
 * Have libc base address
