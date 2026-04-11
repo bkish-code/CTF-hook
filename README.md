@@ -126,6 +126,7 @@ Let's continue to use `char buf[40]` and a second buffer: `char buf2[60]`
 ## Find string in gdb
 
 In the problem of [SSP](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf), we need to find out the offset between `argv[0]` and the input buffer.
+So, we find the environ first because evnviron is a exposed pointer and you can use it to computer where `argv[0]` is. `argv` is not a global symbol and gdb cannot print `argv` unless you are inside main. Subtracting 0x10 from environ gives `argv[0]`. We want argv[0] because it gives us a stable, predictable anchor on the stack. In SSP problems, that anchor is essential for calculating the offset between your input buffer and other stack objects. argv[0] is always in the same relative position, always a valid pointer to a string, always readable, and always placed before envp. It is a good way to find where the canary is located.
 
 ### gdb
 
@@ -270,14 +271,41 @@ Alternatively, using `set detach-on-fork off`, we can then control both sides of
 
 ## Secret of a mysterious section - .tls
 
-**constraints**:
+If you force malloc to use mmap (by requesting a large enough allocation), the returned memory region is placed right before the Thread‑Local Storage (.tls) segment.
 
-* Need `malloc` function and you can malloc with arbitrary size
-* Arbitrary address leaking
+And `.tls` contains high‑value secrets: the canary, main_arena, and a stable stack pointer.
 
+This lets you leak those secrets if you have an arbitrary‑read primitive.
+
+**Requirements for .tls leak trick**:
+
+1. We need the `malloc` function so we can malloc with arbitrary size <brk>
+   If we request a chunk large enough (by using `malloc(0x21000)` ), glibc uses the mmap path. This large malloc gives us a chunk that is placed below `.tls` in virtual memmory. We then can read above mmap'd chunk to reach `.tls`. 
+2. Arbitrary address leaking <brk>
+   Once the chunk below .tls, we need to read memory at arbitrary addresses. .tls contains: <brk>
+   1. the **stack canary** (value of __stack_chk_guard)
+   2. the **pointer to** `main_arena` (leaks libc base)
+   3. a **stable stack pointer snapshot** (helps defeat PIE)
+   4. other thread local values
+   5. If we have arbitrary read, we can do <brk>
+   `read( tls_addr + offset )` and extract all of the above secrets. 
+   
+
+We want to read upward, from mmap into `.tls`.
 We make `malloc` use `mmap` to allocate memory(size 0x21000 is enough). In general, these pages will be placed at the address just before `.tls` section.
 
-There is some useful information on **`.tls`**, such as the address of `main_arena`, `canary` (value of stack guard), and a strange `stack address` which points to somewhere on the stack but with a fixed offset.
+### The attack flow
+
+1. Use malloc(0x21000) <brk>
+   → glibc returns an mmap chunk placed just below .tls.
+2. Use your arbitrary leak <brk> 
+   → read memory above the chunk
+   → reach .tls
+3. Extract secrets
+   * canary → bypass SSP
+   * main_arena pointer → compute libc base
+   * stack pointer snapshot → compute stack offsets
+
 
 **Before calling mmap:**
 
