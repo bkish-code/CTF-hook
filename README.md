@@ -426,7 +426,7 @@ ptr->callback(ptr->data);  // Write-what-where primitive triggers
 ### Exploitation Steps
 1. Leak a libc address.
 2. Compute libc base.
-3. Compute the address of `_ _free_hook`:
+3. Compute the address of `_ _free_hook`:<br>
    `free_hook = libc_base + offset(_ _free_hook)`
 4. Compute the address of one-gadget:<br>
    `one_gadget = libc_base + offset(one_gadget)`.
