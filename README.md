@@ -126,8 +126,15 @@ Let's continue to use `char buf[40]` and a second buffer: `char buf2[60]`
 
 ## Find string in gdb
 
+We may want to find the address of a string stored in *memory* using GDB. Strings we may want, include:
+* `argv[0]`
+* an environment variable
+* `/bin/sh`
+* a buffer on the stack
+* a known marker string in the binary
+
 In the problem of [SSP](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf), we need to find out the offset between `argv[0]` and the input buffer.
-So, we find the environ first because evnviron is a exposed pointer and you can use it to computer where *argv[0]* is. `argv` is not a global symbol and gdb cannot print *argv* unless you are inside main. Subtracting 0x10 from `environ` gives *argv[0]*. We want *argv[0]* because it gives us a stable, predictable anchor on the stack. In SSP problems, that anchor is essential for calculating the offset between your input buffer and other stack objects. *argv[0]* is always in the same relative position, always a valid pointer to a string, always readable, and always placed before envp. It is a good way to find where the canary is located.
+So, we find `environ` first because *environ* is a exposed pointer and we can use it to find the address of *argv[0]*. `argv` is not a global symbol and gdb cannot print *argv* unless we are inside main. Subtracting *0x10* from `environ` gives *argv[0]*. We want *argv[0]* because it gives us a stable, predictable anchor on the stack. In SSP problems, that anchor is essential for calculating the offset between your input buffer and other stack objects. *argv[0]* is always in the same relative position, always a valid pointer to a string, always readable, and always placed before envp. It is a good way to find where the canary is located.
 
 ### gdb
 
