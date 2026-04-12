@@ -149,7 +149,7 @@ $9 = 0x7fffffffde38
 * Use `searchmem "/home/naetw/CTF/seccon2016/check/checker"`
 * Then use `searchmem $result_address`
 
-```gdb-peda
+```gdb
 gdb-peda$ searchmem "/home/naetw/CTF/seccon2016/check/checker"
 Searching for '/home/naetw/CTF/seccon2016/check/checker' in: None ranges
 Found 3 results, display max 3 items:
@@ -233,10 +233,59 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 
 **Requirements**:
 
-* Have already leaked libc base address
-* Can leak the content of arbitrary address
+* You have already leaked a libc base address
+  * This means you know: `libc_base = leaked_libc_addr - known_offset`
+  * Once you know the libc base, you can compute the absolute address of any libc symbol:
+    * environ
+      * `environ` iis a global pointer inside libc that always points to the **current stack frame**
+    * __libc_start_main_ret
+    * system
+    * /bin/sh
+    * etc.
+* You can leak the content of arbitrary address (arbitrary read primitive)
+  * Your exploit includes one of the following:
+    * `printf("%s", (char*)address);`
+    * `puts(*unit64_t*)address);`
+    * a custom "read memory at address X" function.
+  * If you can read from any address, you can compute:
+    * addr_environ
+      * You can leak: `stack_pointer = *(addr_environ)`.
+      * This is a **real stack address** inside the running process.
+     
+### Stack Leak
 
-There is a symbol `environ` in libc, whose value is the same as the third argument of `main` function, `char **envp`.
+With both requirements satisfied, you can get a stack leak:
+1. You know where libc is mapped.
+2. You know where `environ` is inside libc.
+3. You can read the memory at that address.
+4. *environ* contains a pointer into the stack.
+5. That pointer is close to the saved return address of `main`.
+
+So you get:
+
+		stack_addr = leak( libc_base + offset(environ) )
+
+From there, you can compute:
+
+		saved_RIP ≈ stack_addr − Δ
+
+where `Δ` is the known offset between `envp` and the saved return address in the function you’re targeting.
+
+This is how you pivot from:
+
+		libc leak → stack leak → saved RIP leak → full control
+
+#### Stack Leak in Exploits
+
+A stack leak is useful in exploitations when:
+* PIE is enabled and you want the binary base.
+* You need to compute the exact location of a ROP chain on the stack.
+* You want to overwrite a saved return address but need its exact address.
+* You want to defeat stack canaries by leaking the region around them.
+
+The *environ trick* is the standard way to do this.
+
+> Note: The symbol `environ` that is in libc has a value that is the same as the third argument of `main` function: `char **envp`.
 The value of `char **envp` is on the stack, thus we can leak stack address with this symbol.
 
 ```gdb
