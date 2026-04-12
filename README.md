@@ -426,13 +426,22 @@ LIBC.srand(LIBC.time(0))
 addr = LIBC.rand() & 0xfffff000
 ```
 
-## Make stack executable
+## Make Your Stack Executable
 
-* [link1](http://radare.today/posts/defeating-baby_rop-with-radare2/)
+In modern exploitations (ROP, ret2libc, syscall chains), the stack is not executable by default. You only need an executable stack for classic stack‑shellcode injection challenges.
+
+How to create an executable-stack binary, compile the program with:
+
+'''bash
+gcc -fno-stack-protector -z execstack -o vuln vuln.c
+'''
+
+* [Blog](https://radareorg.github.io/blog/posts/defeating-baby_rop-with-radare2/)
+* [Github link](https://github.com/radareorg/blog/blob/master/content/posts/defeating-baby_rop-with-radare2.md?plain=1)
 * [link2](https://sploitfun.wordpress.com/author/sploitfun/)
-* Haven't read yet orz
 
-## Use one-gadget-RCE instead of system
+
+## Getting a Shell with one-gadget-RCE instead of System
 
 To get a shell, we need to call `system('/bin/sh')`. This requires us to manipulate parameters and hijack a function to `system`. However, we cannot always manipulate the parameters.  
 
