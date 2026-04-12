@@ -183,11 +183,11 @@ With specific library in two ways:
 
 After this, you can connect to binary service by command `nc localhost $port`.
 
-## Find specific function offset in libc
+## Finding a Specific Function Offset in libc
 
-If we leaked libc address of certain function successfully, we could use get libc base address by subtracting the offset of that function.
+If we are able to leak a libc address of a function, we could use get **libc base address** by subtracting the offset of that function.
 
-### Manually
+### Finding it Manually
 
 * `readelf -s $libc | grep ${function}@`
 
@@ -199,7 +199,7 @@ $ readelf -s libc-2.19.so | grep system@
    1443: 00040310    56 FUNC    WEAK   DEFAULT   12 system@@GLIBC_2.0
 ```
 
-### Automatically
+### Finding it Automatically
 
 * Use [pwntools](https://github.com/Gallopsled/pwntools), then you can use it in your exploit script.
 
@@ -212,9 +212,9 @@ libc = ELF('libc.so')
 system_off = libc.symbols['system']
 ```
 
-## Find '/bin/sh' or 'sh' in library
+## Finding the '/bin/sh' string in libc
 
-Need libc base address first
+Determine the **libc base address** before locating `/bin/sh`.
 
 ### Manually
 
@@ -236,7 +236,7 @@ sh = base + next(libc.search('sh\x00'))
 binsh = base + next(libc.search('/bin/sh\x00'))
 ```
 
-## Leak stack address
+## Leaking a Stack Address via `environ`
 
 ### Requirements
 
