@@ -231,7 +231,7 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 
 ## Leak stack address
 
-**constraints**:
+**Requirements**:
 
 * Have already leaked libc base address
 * Can leak the content of arbitrary address
@@ -239,7 +239,7 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 There is a symbol `environ` in libc, whose value is the same as the third argument of `main` function, `char **envp`.
 The value of `char **envp` is on the stack, thus we can leak stack address with this symbol.
 
-```
+```c
 (gdb) list 1
 1       #include <stdlib.h>
 2       #include <stdio.h>
