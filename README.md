@@ -522,29 +522,37 @@ For example,
 
 **Tool to get contraints:**  [one_gadget](https://github.com/david942j/one_gadget) 
 
-
 If we can satisfy those constraints, we can get a shell.
+
 
 ## Hijack hook function
 
+A hook function is:
+* a function pointer stored in **writable global memory** inside glibc
+  * if overwritten, glibc will **call the attacker‑supplied address instead**
+* checked every time `malloc`, `free`, or `realloc` runs
+* meant originally for debugging memory allocation
+* they are **NULL** by default, so glibc uses its default behavior
+
+Hijacking a hook function means overwriting glibc’s internal hook pointers (like `__free_hook` or `__malloc_hook`) so that when the program calls free() or malloc(), execution jumps to an address you control. 
+
 Inside glibc, or malloc.h, global variables exist, such as:
-* _ _malloc_hook
-* _ _free_hook
-* _ _realloc_hook
+* __malloc_hook
+* __free_hook
+* __realloc_hook
 >[!NOTE] glibc 2.34+ removed these hooks.
 
-These are **function pointers** used for debugging memory allocators. They are  *NULL* by default. Because they are global variables in writable memory, an attacker can write an address to them.
 
 ```
 // Normal glibc behavior:
-free(ptr);  // Calls _ _libc_free() internally
+free(ptr);  // Calls __libc_free() internally
 
-// After attacker overwrites _ _free_hook:
-_ _free_hook = 0xdeadbeef;  // Attacker's address
+// After attacker overwrites __free_hook:
+__free_hook = 0xdeadbeef;  // Attacker's address
 
 // Now when victim calls:
 free(ptr);  
-// glibc executes: _ _free_hook(ptr, ...) 
+// glibc executes: __free_hook(ptr, ...) 
 // Jumps to 0xdeadbeef (attacker's code/gadget)
 ```
 
@@ -556,12 +564,13 @@ if (_ _free_hook !NULL)
     (*_ _free_hook)(ptr, return_address);
 ```
 
-If you overwrite `_ _free_hook` with the address of a gadget, then the next time the program calls `free()`, glibc jumps to your payload.
+If you overwrite `__free_hook` with the address of a gadget, then the next time the program calls `free()`, glibc jumps to your payload.
 
 ### Requirements for the attack
 
-1. You must know the **libc base address** to compute the absolute address of `_ _free_hook` or `_ _malloc_hook`.
+1. You must know the **libc base address** to compute the absolute address of `__free_hook` or `__malloc_hook`.
 2. You must have arbitrary write - be able to write a value of a memory address or a write-what-primitive.
+
    ```
    // Vulnerability: arbitrary write primitive
    *attacker_controlled_address = attacker_controlled_value;
