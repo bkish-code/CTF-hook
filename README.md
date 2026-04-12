@@ -49,8 +49,8 @@ d. `scanf("%d", &num)`
          * It uses `sub esp, eax  ; eax = n`
       * alloca(negative_number) makes the stack grow upward, towards higher memory addresses, in the wrong direction.
       * alloca does not check if numbers are > 0; *num* should be an *unsigned integer*.
-    * If num is negative, it will overwrite the stack frame.
-        * E.g. [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
+   * **pwnable** if num is negative, it will overwrite the stack frame.
+   *    * E.g. [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
 
 ### gets
 
