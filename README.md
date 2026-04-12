@@ -78,7 +78,7 @@ b. `fgets(buf, 40, stdin)`
 E.g.
 
 **memory layout**
-```
+```asm
 0x7fffffffdd00: 0x4141414141414141      0x4141414141414141
 0x7fffffffdd10: 0x4141414141414141      0x4141414141414141
 0x7fffffffdd20: 0x4141414141414141      0x00007fffffffe1cd
@@ -135,7 +135,7 @@ So, we find the environ first because evnviron is a exposed pointer and you can 
 
 E.g.
 
-```
+```gdb
 (gdb) p/x (char **)environ
 $9 = 0x7fffffffde38
 (gdb) x/gx 0x7fffffffde38-0x10
@@ -149,7 +149,7 @@ $9 = 0x7fffffffde38
 * Use `searchmem "/home/naetw/CTF/seccon2016/check/checker"`
 * Then use `searchmem $result_address`
 
-```
+```gdb-peda
 gdb-peda$ searchmem "/home/naetw/CTF/seccon2016/check/checker"
 Searching for '/home/naetw/CTF/seccon2016/check/checker' in: None ranges
 Found 3 results, display max 3 items:
@@ -186,7 +186,7 @@ If we leaked libc address of certain function successfully, we could use get lib
 
 E.g.
 
-```
+```bash
 $ readelf -s libc-2.19.so | grep system@
     620: 00040310    56 FUNC    GLOBAL DEFAULT   12 __libc_system@@GLIBC_PRIVATE
    1443: 00040310    56 FUNC    WEAK   DEFAULT   12 system@@GLIBC_2.0
@@ -239,7 +239,7 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 There is a symbol `environ` in libc, whose value is the same as the third argument of `main` function, `char **envp`.
 The value of `char **envp` is on the stack, thus we can leak stack address with this symbol.
 
-```c
+```gdb
 (gdb) list 1
 1       #include <stdlib.h>
 2       #include <stdio.h>
