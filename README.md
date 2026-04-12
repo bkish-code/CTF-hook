@@ -231,7 +231,7 @@ binsh = base + next(libc.search('/bin/sh\x00'))
 
 ## Leak stack address
 
-**Requirements**:
+### Requirements
 
 * You have already leaked a libc base address
   * This means you know: `libc_base = leaked_libc_addr - known_offset`
@@ -308,41 +308,42 @@ $12 = 0x7fffffffe230
 * `0x7ffff7a0e000` is current libc base address
 * `0x3c5f38` is offset of `environ` in libc
 
-This [manual](https://www.gnu.org/software/libc/manual/html_node/Program-Arguments.html) explains details about `environ`.
+See the [glibc manual](https://www.gnu.org/software/libc/manual/html_node/Program-Arguments.html) for details about `environ`.
 
 ## Fork problem in gdb
 
-When you use **gdb** to debug a binary with `fork()` function, you can use the following command to determine which process to follow (The default setting of original gdb is parent, while that of gdb-peda is child.):
+When a program calls `fork()`, two processes exist: the **parent** and the **child**. GDB can only follow one of them. So, when debugging a program that calls `fork()` in **GDB**, you must explicitly tell *GDB* which process to follow. By default, standard GDB follows the *parent* process, while GDB‑PEDA is configured to follow the *child* process. Use one of the following commands to indicate which process to follow:
 
 * `set follow-fork-mode parent`
 * `set follow-fork-mode child`
 
-Alternatively, using `set detach-on-fork off`, we can then control both sides of each fork. Using `inferior X` where `X` is any of the numbers that show up for `info inferiors` will switch to that side of the fork. This is useful if both sides of the fork are necessary to attack a challenge, and the simple `follow` ones above aren't sufficient.
+Alternatively, if you run `set detach-on-fork off`, GDB keeps both the parent and child processes under its control after a `fork()`. You can list all active processes with `info inferiors`, and switch to any one of them using `inferior X`, where `X` is the corresponding process number. This is helpful when an exploit requires observing or interacting with both sides of the fork and simple follow‑mode settings aren’t enough.
 
-## Secret of a mysterious section - .tls
+Forking servers are common in exploits:
+* If you only follow the parent, you never see the crash.
+* If you only follow the child, you may miss setup logic in the parent.
+* Using `detach-on-fork off` lets you debug both.
 
-If you force malloc to use mmap (by requesting a large enough allocation), the returned memory region is placed right before the Thread‑Local Storage (.tls) segment.
+## Leaking `.tls` to Break ASLR, SSP, and Heap Hardening
 
-And `.tls` contains high‑value secrets: the canary, main_arena, and a stable stack pointer.
+Forcing `malloc` to use `mmap` (by requesting a sufficiently large allocation) places the allocated region directly below the Thread‑Local Storage (`.tls`) segment. The *.tls* segment stores several high‑value runtime secrets—most importantly the **stack canary**, the **main_arena** pointer, and a stable **stack pointer**. With an arbitrary‑read primitive, you can read upward from the `mmap` chunk into `.tls` and leak all of these values.
 
-This lets you leak those secrets if you have an arbitrary‑read primitive.
+### Requirements for .tls leak trick
 
-**Requirements for .tls leak trick**:
+1. We need the `malloc` function so we can malloc with arbitrary size
+   * If we request a chunk large enough (by using `malloc(0x21000)` ), glibc uses the mmap path.
+   * This large malloc gives us a chunk that is placed below `.tls` in virtual memmory.
+   * We then can read above mmap'd chunk to reach `.tls`. 
+3. Arbitrary address leaking
+   * Once the chunk below .tls, we need to read memory at arbitrary addresses. .tls contains:
+     1. the **stack canary** (value of __stack_chk_guard)
+     2. the **pointer to** `main_arena` (leaks libc base)
+     3. a **stable stack pointer snapshot** (helps defeat PIE)
+     4. other thread local values
+     5. If we have arbitrary read, we can do
+        * `read( tls_addr + offset )` and extract all of the above secrets.    
 
-1. We need the `malloc` function so we can malloc with arbitrary size <brk>
-   If we request a chunk large enough (by using `malloc(0x21000)` ), glibc uses the mmap path. This large malloc gives us a chunk that is placed below `.tls` in virtual memmory. We then can read above mmap'd chunk to reach `.tls`. 
-2. Arbitrary address leaking <brk>
-   Once the chunk below .tls, we need to read memory at arbitrary addresses. .tls contains: <brk>
-   1. the **stack canary** (value of __stack_chk_guard)
-   2. the **pointer to** `main_arena` (leaks libc base)
-   3. a **stable stack pointer snapshot** (helps defeat PIE)
-   4. other thread local values
-   5. If we have arbitrary read, we can do <brk>
-   `read( tls_addr + offset )` and extract all of the above secrets. 
-   
-
-We want to read upward, from mmap into `.tls`.
-We make `malloc` use `mmap` to allocate memory(size 0x21000 is enough). In general, these pages will be placed at the address just before `.tls` section.
+> Goal: We want to read upward, from mmap into `.tls`. We do this by making `malloc` use `mmap` to allocate memory(size 0x21000 is enough). In general, these pages will be placed at the address just before `.tls` section.
 
 ### The attack flow
 
@@ -383,9 +384,9 @@ We make `malloc` use `mmap` to allocate memory(size 0x21000 is enough). In gener
 7fecc007c000-7fecc007d000 rw-p 00025000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 ```
 
-## Predictable RNG(Random Number Generator)
+## Predictable Random Number Generator (RNG)
 
-When the binary uses the RNG to make the address of important information or sth, we can guess the same value if it's predictable.
+If a program uses a **pseudo‑random number generator (RNG)** to decide the address of something important, and if that RNG is **predictable**, then we can **predict the same value** and therefore know the “random” address.
 
 Assuming that it's predictable, we can use [ctypes](https://docs.python.org/2/library/ctypes.html) which is a build-in module in Python.
 
