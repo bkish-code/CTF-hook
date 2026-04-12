@@ -218,14 +218,22 @@ system_off = libc.symbols['system']
 
 ## Finding the '/bin/sh' string in libc
 
-Determine the **libc base address** before locating `/bin/sh`.
+You must first determine the **libc base address** before locating `/bin/sh`, because the string’s final runtime address is:
 
-### Manually
+'''code
+binsh_addr = libc_base + offset_of("/bin/sh")
+'''
 
-* `objdump -s libc.so | less` then search 'sh'
+⚠️ The offset should be fixed but the base address of libc is not fixed due to ASLR. 
+
+### Manually locating the offset
+
 * `strings -tx libc.so | grep /bin/sh`
+  * This shows the **offset** of `/bin/sh` inside libc.
+* `objdump -s libc.so | less` then search 'sh'
+  * You can scroll and search for `sh`, but this is slower and less direct.
 
-### Automatically
+### Automatically locating the offset with pwntools
 
 * Use [pwntools](https://github.com/Gallopsled/pwntools)
 
@@ -236,8 +244,13 @@ from pwn import *
 
 libc = ELF('libc.so')
 ...
-sh = base + next(libc.search('sh\x00'))
-binsh = base + next(libc.search('/bin/sh\x00'))
+sh_offset = next(libc.search(b'sh\x00'))
+binsh_offset = next(libc.search(b'/bin/sh\x00'))
+
+# this is for a broad search
+sh_address = base + sh_offset
+# this should be used
+binsh_addr = base + binsh_offset
 ```
 
 ## Leaking a Stack Address via `environ`
