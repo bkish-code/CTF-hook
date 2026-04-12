@@ -136,7 +136,9 @@ We may want to find the address of a string stored in *memory* using GDB. String
 In the problem of [SSP](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf), we need to find out the offset between `argv[0]` and the input buffer.
 So, we find `environ` first because *environ* is a exposed pointer and we can use it to find the address of *argv[0]*. `argv` is not a global symbol and gdb cannot print *argv* unless we are inside main. Subtracting *0x10* from `environ` gives *argv[0]*. We want *argv[0]* because it gives us a stable, predictable anchor on the stack. In SSP problems, that anchor is essential for calculating the offset between your input buffer and other stack objects. *argv[0]* is always in the same relative position, always a valid pointer to a string, always readable, and always placed before envp. It is a good way to find where the canary is located.
 
-### gdb
+### Using GDB
+
+GDB is a debugger that follows the parent after `fork()`. It can be used to find the address of `environ`
 
 * Use `p/x ((char **)environ)` in gdb, and the address of argv[0] will be the `output - 0x10`
 
@@ -151,7 +153,9 @@ $9 = 0x7fffffffde38
 0x7fffffffe1cd: "/home/naetw/CTF/seccon2016/check/checker"
 ```
 
-### [gdb peda](https://github.com/longld/peda)
+### Using GDB-PEDA to find address of `environ` 
+
+GDB-PEDA by default follows the child after `fork()`. PEDA is GDB with the PEDA plugin loaded, which changes defaults and adds helper commands. Use PEDA if you want convenience features like colored stack views, register dumps, and memory helpers. For more information, see [gdb peda](https://github.com/longld/peda).
 
 * Use `searchmem "/home/naetw/CTF/seccon2016/check/checker"`
 * Then use `searchmem $result_address`
@@ -172,12 +176,12 @@ Found 2 results, display max 2 items:
 
 ## Binary Service
 
-Normal:
+You can run your binary as a small local network service and connect to it with netcat (nc) - just like a remote CTF challenge. ncat listens on a port and launches the binary for each connection, letting your exploit interact with it over TCP instead of stdin/stdout. In other words, this runs the binary as a local network service on `127.0.0.1`, letting you connect with `nc` exactly like a remote CTF server.
 
+Run as a normal network service:
 * `ncat -vc ./binary -kl 127.0.0.1 $port`
 
-With specific library in two ways:
-
+Run with a specific library to match remote CTF server environment:
 * `ncat -vc 'LD_PRELOAD=/path/to/libc.so ./binary' -kl 127.0.0.1 $port`
 * `ncat -vc 'LD_LIBRARY_PATH=/path/of/libc.so ./binary' -kl 127.0.0.1 $port`
 
