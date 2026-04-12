@@ -136,7 +136,7 @@ We may want to find the address of a string stored in *memory* using GDB. String
 In the problem of [SSP](http://j00ru.vexillium.org/blog/24_03_15/dragons_ctf.pdf), we need to find out the offset between `argv[0]` and the input buffer.
 So, we find `environ` first because *environ* is a exposed pointer and we can use it to find the address of *argv[0]*. `argv` is not a global symbol and gdb cannot print *argv* unless we are inside main. Subtracting *0x10* from `environ` gives *argv[0]*. We want *argv[0]* because it gives us a stable, predictable anchor on the stack. In SSP problems, that anchor is essential for calculating the offset between your input buffer and other stack objects. *argv[0]* is always in the same relative position, always a valid pointer to a string, always readable, and always placed before envp. It is a good way to find where the canary is located.
 
-### Using GDB
+### Option 1: Using GDB to find address of `environ` 
 
 GDB is a debugger that follows the parent after `fork()`. It can be used to find the address of `environ`
 
@@ -153,7 +153,7 @@ $9 = 0x7fffffffde38
 0x7fffffffe1cd: "/home/naetw/CTF/seccon2016/check/checker"
 ```
 
-### Using GDB-PEDA to find address of `environ` 
+### Option 2: Using GDB-PEDA to find address of `environ` 
 
 GDB-PEDA by default follows the child after `fork()`. PEDA is GDB with the PEDA plugin loaded, which changes defaults and adds helper commands. Use PEDA if you want convenience features like colored stack views, register dumps, and memory helpers. For more information, see [gdb peda](https://github.com/longld/peda).
 
