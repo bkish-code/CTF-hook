@@ -187,7 +187,7 @@ Run with a specific library to match remote CTF server environment:
 
 After this, you can connect to binary service by command `nc localhost $port`.
 
-## Finding a Specific Function Offset in libc
+## Finding the Offset of a Function in libc
 
 If we are able to leak a libc address of a function, we could use get **libc base address** by subtracting the offset of that function.
 
