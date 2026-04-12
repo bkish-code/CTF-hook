@@ -30,12 +30,13 @@ Note the following unsafe input functions:
 ### scanf
 
    a. **scanf("%s", buf)**
+   
        * **%s** doesn't have bounds check which can lead to an overflow.
        * **pwnable** if we enter over 39 characters.
 
    b. `scanf("%39s", buf)`
    
-       * `%39s` reads only 39 bytes from the user input and puts NULL byte at the end of input.
+       * **%39s** reads only 39 bytes from the user input and puts NULL byte at the end of input.
        * *not pwnable* becuase buf can hold up to 40 bytes. 
 
    c. `scanf("%40s", buf)`
