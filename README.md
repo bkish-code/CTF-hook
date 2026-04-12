@@ -29,32 +29,28 @@ Note the following unsafe input functions:
 
 ### scanf
 
-   a. **scanf("%s", buf)**
-   
-       * **%s** doesn't have bounds check which can lead to an overflow.
-       * **pwnable** if we enter over 39 characters.
+a. **scanf("%s", buf)**   
+    * **%s** doesn't have bounds check which can lead to an overflow.
+    * **pwnable** if we enter over 39 characters.
 
-   b. `scanf("%39s", buf)`
-   
-       * **%39s** reads only 39 bytes from the user input and puts NULL byte at the end of input.
-       * *not pwnable* becuase buf can hold up to 40 bytes. 
+b. `scanf("%39s", buf)`   
+    * **%39s** reads only 39 bytes from the user input and puts NULL byte at the end of input.
+    * *not pwnable* becuase buf can hold up to 40 bytes. 
 
-   c. `scanf("%40s", buf)`
-   
-       * It reads **40 bytes** from user input, but it also **adds a NULL byte at the end of input** for a total of 41 bytes.
-       * Therefore, it has **off-by-one-byte-overflow** since buf[40] = '\0' <-- writes past buf (stack overflow). 
-       * **pwnable** as '\0' overwrites whatever follows the buf array.
+c. `scanf("%40s", buf)`   
+    * It reads **40 bytes** from user input, but it also **adds a NULL byte at the end of input** for a total of 41 bytes.
+    * Therefore, it has **off-by-one-byte-overflow** since buf[40] = '\0' <-- writes past buf (stack overflow). 
+    * **pwnable** as '\0' overwrites whatever follows the buf array.
 
-   d. `scanf("%d", &num)`
-   
-       * This allows the user to enter a negative or positive integer. 
-	   * This function is used with `alloca(num)`
-           * alloca() is designed for positive numbers only. It makes the stack grow downward, or from higher to lower memory addresses.
-		   	   * It uses `sub esp, eax  ; eax = n`
-		   * alloca(negative_number) makes the stack grow upward, towards higher memory addresses, in the wrong direction.
-		   * alloca does not check if numbers are > 0; *num* should be an *unsigned integer*. 
-        * If num is negative, it will overwrite the stack frame.
-           * E.g. [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
+d. `scanf("%d", &num)`   
+    * This allows the user to enter a negative or positive integer. 
+	* This function is used with `alloca(num)`
+        * alloca() is designed for positive numbers only. It makes the stack grow downward, or from higher to lower memory addresses.
+		   	* It uses `sub esp, eax  ; eax = n`
+		* alloca(negative_number) makes the stack grow upward, towards higher memory addresses, in the wrong direction.
+		* alloca does not check if numbers are > 0; *num* should be an *unsigned integer*. 
+    * If num is negative, it will overwrite the stack frame.
+        * E.g. [Seccon CTF quals 2016 cheer_msg](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/cheer-msg-100)
 
 ### gets
 
