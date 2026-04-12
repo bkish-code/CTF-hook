@@ -29,7 +29,7 @@ Note the following unsafe input functions:
 
 ### scanf
 
-   a. `scanf("%s", buf)`
+   a. **scanf("%s", buf)**
    
        * `%s` doesn't have bounds check which leads to an overflow.
        * **pwnable** if we enter over 39 characters.
