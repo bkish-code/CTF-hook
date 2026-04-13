@@ -153,7 +153,7 @@ $9 = 0x7fffffffde38
 0x7fffffffe1cd: "/home/naetw/CTF/seccon2016/check/checker"
 ```
 
-### Option 2: Using GDB-PEDA to find address of `environ` 
+### Option 2: Using GDB-PEDA to find address of *environ* 
 
 GDB-PEDA by default follows the child after `fork()`. PEDA is GDB with the PEDA plugin loaded, which changes defaults and adds helper commands. Use PEDA if you want convenience features like colored stack views, register dumps, and memory helpers. For more information, see [gdb peda](https://github.com/longld/peda).
 
