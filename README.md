@@ -456,7 +456,7 @@ gcc -fno-stack-protector -z execstack -o vuln vuln.c
 * [link2](https://sploitfun.wordpress.com/author/sploitfun/)
 
 
-## 🧨 Getting a Shell with one-gadget-RCE instead of System
+## 🐚 Getting a Shell with one-gadget-RCE instead of System
 
 To get a shell, we need to call `system('/bin/sh')`. This requires us to manipulate parameters and hijack a function to `system`. However, we cannot always manipulate the parameters.  
 
@@ -644,7 +644,7 @@ if (__builtin_expect (hook != NULL, 0))
 
 It checks the value of `__free_hook`. If it's not NULL, it will call the hook function first. Here, we would like to use **one-gadget-RCE**. Since hook function is called in the libc, the constraints of **one-gadget** are usually satisfied.
 
-## 🔧 Use printf to trigger malloc and free
+## 🖨️ Use printf to trigger malloc and free
 
 Look into the source of printf, there are several places which may trigger malloc. Take [vfprintf.c line 1470](https://code.woboq.org/userspace/glibc/stdio-common/vfprintf.c.html#1470) for example:
 
