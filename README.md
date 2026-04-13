@@ -717,6 +717,7 @@ More details:
 ## 🎯 Use execveat to open a shell
 
 When it comes to opening a shell with system call, `execve` always pops up in mind. However, it's not always easily available due to the lack of gadgets or others constraints.  
+
 Actually, there is a system call, `execveat`, with following prototype:
 
 ```c
