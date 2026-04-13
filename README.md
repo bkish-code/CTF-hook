@@ -174,7 +174,7 @@ Found 2 results, display max 2 items:
 [stack] : 0x7fffffffde28 --> 0x7fffffffe1cd ("/home/naetw/CTF/seccon2016/check/checker")
 ```
 
-## 🧩 Binary Service
+## 🌐 Binary Service
 
 You can run your binary as a small local network service and connect to it with netcat (nc) - just like a remote CTF challenge. ncat listens on a port and launches the binary for each connection, letting your exploit interact with it over TCP instead of stdin/stdout. In other words, this runs the binary as a local network service on `127.0.0.1`, letting you connect with `nc` exactly like a remote CTF server.
 
@@ -216,7 +216,7 @@ libc = ELF('libc.so')
 system_off = libc.symbols['system']
 ```
 
-## 🧬 Finding the '/bin/sh' string in libc
+## 🪸 Finding the '/bin/sh' string in libc
 
 You must first determine the **libc base address** before locating `/bin/sh`, because the string’s final runtime address is:
 
@@ -253,7 +253,7 @@ sh_address = base + sh_offset
 binsh_addr = base + binsh_offset
 ```
 
-## 🧭 Leaking a Stack Address via `environ`
+## 💧 Leaking a Stack Address via `environ`
 
 ### Requirements
 
