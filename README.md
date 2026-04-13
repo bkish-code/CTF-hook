@@ -216,7 +216,7 @@ libc = ELF('libc.so')
 system_off = libc.symbols['system']
 ```
 
-## 🪸 Finding the '/bin/sh' string in libc
+## 🧵 Finding the '/bin/sh' string in libc
 
 You must first determine the **libc base address** before locating `/bin/sh`, because the string’s final runtime address is:
 
@@ -441,7 +441,7 @@ LIBC.srand(LIBC.time(0))
 addr = LIBC.rand() & 0xfffff000
 ```
 
-## 🧵 Make Your Stack Executable
+## 🪸 Make Your Stack Executable
 
 In modern exploitations (ROP, ret2libc, syscall chains), the stack is not executable by default. You only need an executable stack for classic stack‑shellcode injection challenges.
 
