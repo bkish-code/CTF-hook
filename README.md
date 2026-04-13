@@ -384,7 +384,7 @@ Forcing `malloc` to use `mmap` (by requesting a sufficiently large allocation) p
 
 **Before calling mmap:**
 
-```
+```asm
 7fecbfe4d000-7fecbfe51000 r--p 001bd000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
 7fecbfe51000-7fecbfe53000 rw-p 001c1000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
 7fecbfe53000-7fecbfe57000 rw-p 00000000 00:00 0
@@ -397,7 +397,7 @@ Forcing `malloc` to use `mmap` (by requesting a sufficiently large allocation) p
 
 **After call mmap:**
 
-```
+```asm
 7fecbfe4d000-7fecbfe51000 r--p 001bd000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
 7fecbfe51000-7fecbfe53000 rw-p 001c1000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
 7fecbfe53000-7fecbfe57000 rw-p 00000000 00:00 0
@@ -563,7 +563,7 @@ free(ptr);
 ### Hijacking Explained
 
 When `free()` is called, glibc does this:
-```
+```c
 if (_ _free_hook !NULL)
     (*_ _free_hook)(ptr, return_address);
 ```
@@ -575,7 +575,7 @@ If you overwrite `__free_hook` with the address of a gadget, then the next time 
 1. You must know the **libc base address** to compute the absolute address of `__free_hook` or `__malloc_hook`.
 2. You must have arbitrary write - be able to write a value of a memory address or a write-what-primitive.
 
-   ```
+   ```c
    // Vulnerability: arbitrary write primitive
    *attacker_controlled_address = attacker_controlled_value;
    
@@ -587,7 +587,7 @@ If you overwrite `__free_hook` with the address of a gadget, then the next time 
 3. The program uses `malloc`, `free`, or `realloc`.
 
 #### Example of Vulnerability
-```
+```c
 // The "write-what-where" vulnerability from use-after-free
 struct node {
     void (*callback)(int);
@@ -624,7 +624,7 @@ By manual:
 
 Since they are used to help us debug programs, they are writable during the execution.
 
-```
+```asm
 0xf77228e0 <__free_hook>:       0x00000000
 0xf7722000 0xf7727000 rw-p      mapped
 ```
