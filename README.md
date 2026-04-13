@@ -367,7 +367,7 @@ Forcing `malloc` to use `mmap` (by requesting a sufficiently large allocation) p
      5. If we have arbitrary read, we can do
         * `read( tls_addr + offset )` and extract all of the above secrets.    
 
-> Goal: We want to read upward, from mmap into `.tls`. We do this by making `malloc` use `mmap` to allocate memory(size 0x21000 is enough). In general, these pages will be placed at the address just before `.tls` section.
+> Goal: We want to read upward, from the new mmap chunk into `.tls`. We do this by making `malloc` use `mmap` to allocate memory(size 0x21000 is enough). In general, the mmap pages will be placed at the address just before `.tls` section, as shown below.
 
 ### The attack flow
 
@@ -402,7 +402,7 @@ Forcing `malloc` to use `mmap` (by requesting a sufficiently large allocation) p
 7fecbfe51000-7fecbfe53000 rw-p 001c1000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
 7fecbfe53000-7fecbfe57000 rw-p 00000000 00:00 0
 7fecbfe57000-7fecbfe7c000 r-xp 00000000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
-► 7fecc0045000-7fecc006a000 rw-p 00000000 00:00 0            <--(added) memory of mmap + .tls section
+► 7fecc0045000-7fecc006a000 rw-p 00000000 00:00 0            <--(added) 🗺️ memory of mmap + 📝.tls section
 7fecc0078000-7fecc007b000 rw-p 00000000 00:00 0
 7fecc007b000-7fecc007c000 r--p 00024000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 7fecc007c000-7fecc007d000 rw-p 00025000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
