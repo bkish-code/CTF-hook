@@ -395,18 +395,20 @@ Forcing `malloc` to use `mmap` (by requesting a sufficiently large allocation) p
 7fecc007c000-7fecc007d000 rw-p 00025000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 ```
 
-**After call mmap:**
+**After calling mmap:**
 
 ```asm
 7fecbfe4d000-7fecbfe51000 r--p 001bd000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
 7fecbfe51000-7fecbfe53000 rw-p 001c1000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
 7fecbfe53000-7fecbfe57000 rw-p 00000000 00:00 0
 7fecbfe57000-7fecbfe7c000 r-xp 00000000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
-► 7fecc0045000-7fecc006a000 rw-p 00000000 00:00 0            <--📝 memory of mmap + .tls section
+► 7fecc0045000-7fecc006a000 rw-p 00000000 00:00 0            <--(added) memory of mmap + .tls section
 7fecc0078000-7fecc007b000 rw-p 00000000 00:00 0
 7fecc007b000-7fecc007c000 r--p 00024000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 7fecc007c000-7fecc007d000 rw-p 00025000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 ```
+
+Notice how the .tls section has grown downward, from ...68000 to ...45000. This is where the memory of mmap has been added - in the lower address space. The .tls section always maintains its memory location in the "Before calling map" and "After calling mmap." 
 
 ## 🎲 Predictable Random Number Generator (RNG)
 
