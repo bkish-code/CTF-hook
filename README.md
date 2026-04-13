@@ -224,7 +224,7 @@ You must first determine the **libc base address** before locating `/bin/sh`, be
 binsh_addr = libc_base + offset_of("/bin/sh")
 '''
 
-⚠️ The offset should be fixed but the base address of libc is not fixed due to ASLR. 
+>[!WARNING] The offset should be fixed but the base address of libc is not fixed due to ASLR. 
 
 ### Manually locating the offset
 
@@ -465,11 +465,13 @@ Instead, we can use a one‑gadget RCE instead of calling system("/bin/sh"). Thi
 1. You must know the libc base address <br>
    One‑gadgets live inside libc, so their absolute address is:
 
-   ```one_gadget_addr = libc_base + offset_of_one_gadget```
+   ```c
+   one_gadget_addr = libc_base + offset_of_one_gadget
+   ```
    
    If you don’t know the libc base, you cannot compute the real address of the gadget.
 
-2. You must be able to write to an arbitrary address.
+3. You must be able to write to an arbitrary address.
    To trigger the one‑gadget, you overwrite a function pointer inside libc, usually:
    * __free_hook
    * __malloc_hook (older glibc)
@@ -477,19 +479,19 @@ Instead, we can use a one‑gadget RCE instead of calling system("/bin/sh"). Thi
 
    Example:
    
-   ```
+   ```c
    __free_hook = one_gadget_addr
    ```
    
    Then when the program calls:
 
-   ```
+   ```c
    free(ptr);
    ```
 
    glibc internally does:
 
-   ```
+   ```c
    if (__free_hook)
     __free_hook(ptr);
    ```
@@ -507,7 +509,9 @@ With **one-gadget-RCE**, we can just hijack `.got.plt` or something that control
 
 A one‑gadget is a location inside libc where the instructions already perform:
 
-```execve("/bin/sh", rdi, rsi)```
+```c
+execve("/bin/sh", rdi, rsi)
+```
 
 or a variant of it.
 
