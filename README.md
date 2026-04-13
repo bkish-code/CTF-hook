@@ -2,7 +2,7 @@ CTF-pwn-tips
 ===========================
 
 
-# Catalog
+# 📚 Catalog
 * [Overflow](#overflow)
 * [Find string in gdb](#find-string-in-gdb)
 * [Binary Service](#binary-service)
@@ -19,7 +19,7 @@ CTF-pwn-tips
 * [Use execveat to open a shell](#use-execveat-to-open-a-shell)
 
 
-## Overflow
+## 💥 Overflow
 
 In the demonstrations, use the following:
 * `char buf[40]` - has 39 bytes for characters and 1 byte for \0 null terminator.
@@ -124,7 +124,7 @@ Let's continue to use `char buf[40]` and a second buffer: `char buf2[60]`
     * E.g. [Seccon CTF quals 2016 jmper](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/jmper-300)
 
 
-## Find string in gdb
+## 🔍 Find string in gdb
 
 We may want to find the address of a string stored in *memory* using GDB. Strings we may want, include:
 * `argv[0]`
@@ -174,7 +174,7 @@ Found 2 results, display max 2 items:
 [stack] : 0x7fffffffde28 --> 0x7fffffffe1cd ("/home/naetw/CTF/seccon2016/check/checker")
 ```
 
-## Binary Service
+## 🧩 Binary Service
 
 You can run your binary as a small local network service and connect to it with netcat (nc) - just like a remote CTF challenge. ncat listens on a port and launches the binary for each connection, letting your exploit interact with it over TCP instead of stdin/stdout. In other words, this runs the binary as a local network service on `127.0.0.1`, letting you connect with `nc` exactly like a remote CTF server.
 
@@ -187,7 +187,7 @@ Run with a specific library to match remote CTF server environment:
 
 After this, you can connect to binary service by command `nc localhost $port`.
 
-## Finding the Offset of a Function in libc
+## 📏 Finding the Offset of a Function in libc
 
 If we are able to leak a libc address of a function, we could use get **libc base address** by subtracting the offset of that function.
 
@@ -216,7 +216,7 @@ libc = ELF('libc.so')
 system_off = libc.symbols['system']
 ```
 
-## Finding the '/bin/sh' string in libc
+## 🧬 Finding the '/bin/sh' string in libc
 
 You must first determine the **libc base address** before locating `/bin/sh`, because the string’s final runtime address is:
 
@@ -253,7 +253,7 @@ sh_address = base + sh_offset
 binsh_addr = base + binsh_offset
 ```
 
-## Leaking a Stack Address via `environ`
+## 🧭 Leaking a Stack Address via `environ`
 
 ### Requirements
 
@@ -334,7 +334,7 @@ $12 = 0x7fffffffe230
 
 See the [glibc manual](https://www.gnu.org/software/libc/manual/html_node/Program-Arguments.html) for details about `environ`.
 
-## Fork problem in gdb
+## 🪓 Fork problem in gdb
 
 When a program calls `fork()`, two processes exist: the **parent** and the **child**. GDB can only follow one of them. So, when debugging a program that calls `fork()` in **GDB**, you must explicitly tell *GDB* which process to follow. By default, standard GDB follows the *parent* process, while GDB‑PEDA is configured to follow the *child* process. Use one of the following commands to indicate which process to follow:
 
@@ -348,7 +348,7 @@ Forking servers are common in exploits:
 * If you only follow the child, you may miss setup logic in the parent.
 * Using `detach-on-fork off` lets you debug both.
 
-## Leaking `.tls` to Break ASLR, SSP, and Heap Hardening
+## 🔓 Leaking `.tls` to Break ASLR, SSP, and Heap Hardening
 
 Forcing `malloc` to use `mmap` (by requesting a sufficiently large allocation) places the allocated region directly below the Thread‑Local Storage (`.tls`) segment. The *.tls* segment stores several high‑value runtime secrets—most importantly the **stack canary**, the **main_arena** pointer, and a stable **stack pointer**. With an arbitrary‑read primitive, you can read upward from the `mmap` chunk into `.tls` and leak all of these values.
 
@@ -389,7 +389,7 @@ Forcing `malloc` to use `mmap` (by requesting a sufficiently large allocation) p
 7fecbfe51000-7fecbfe53000 rw-p 001c1000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
 7fecbfe53000-7fecbfe57000 rw-p 00000000 00:00 0
 7fecbfe57000-7fecbfe7c000 r-xp 00000000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
-7fecc0068000-7fecc006a000 rw-p 00000000 00:00 0              <- .tls section
+7fecc0068000-7fecc006a000 rw-p 00000000 00:00 0              <- 🟢.tls section
 7fecc0078000-7fecc007b000 rw-p 00000000 00:00 0
 7fecc007b000-7fecc007c000 r--p 00024000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 7fecc007c000-7fecc007d000 rw-p 00025000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
@@ -402,13 +402,13 @@ Forcing `malloc` to use `mmap` (by requesting a sufficiently large allocation) p
 7fecbfe51000-7fecbfe53000 rw-p 001c1000 fd:00 131210         /lib/x86_64-linux-gnu/libc-2.24.so
 7fecbfe53000-7fecbfe57000 rw-p 00000000 00:00 0
 7fecbfe57000-7fecbfe7c000 r-xp 00000000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
-7fecc0045000-7fecc006a000 rw-p 00000000 00:00 0              <- memory of mmap + .tls section
+7fecc0045000-7fecc006a000 rw-p 00000000 00:00 0              <- 🟢 memory of mmap + .tls section
 7fecc0078000-7fecc007b000 rw-p 00000000 00:00 0
 7fecc007b000-7fecc007c000 r--p 00024000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 7fecc007c000-7fecc007d000 rw-p 00025000 fd:00 131206         /lib/x86_64-linux-gnu/ld-2.24.so
 ```
 
-## Predictable Random Number Generator (RNG)
+## 🎲 Predictable Random Number Generator (RNG)
 
 If a program uses a **pseudo‑random number generator (RNG)** to decide the address of something important, and if that RNG is **predictable**, then we can **predict the same value** and therefore know the “random” address.
 
@@ -439,7 +439,7 @@ LIBC.srand(LIBC.time(0))
 addr = LIBC.rand() & 0xfffff000
 ```
 
-## Make Your Stack Executable
+## 🧵 Make Your Stack Executable
 
 In modern exploitations (ROP, ret2libc, syscall chains), the stack is not executable by default. You only need an executable stack for classic stack‑shellcode injection challenges.
 
@@ -454,7 +454,7 @@ gcc -fno-stack-protector -z execstack -o vuln vuln.c
 * [link2](https://sploitfun.wordpress.com/author/sploitfun/)
 
 
-## Getting a Shell with one-gadget-RCE instead of System
+## 🧨 Getting a Shell with one-gadget-RCE instead of System
 
 To get a shell, we need to call `system('/bin/sh')`. This requires us to manipulate parameters and hijack a function to `system`. However, we cannot always manipulate the parameters.  
 
@@ -529,7 +529,7 @@ For example,
 If we can satisfy those constraints, we can get a shell.
 
 
-## Hijack hook function
+## 🪝 Hijack hook function
 
 A hook function is:
 * a function pointer stored in **writable global memory** inside glibc
@@ -547,7 +547,7 @@ Inside glibc, or malloc.h, global variables exist, such as:
 >[!NOTE] glibc 2.34+ removed these hooks.
 
 
-```
+```c
 // Normal glibc behavior:
 free(ptr);  // Calls __libc_free() internally
 
@@ -642,7 +642,7 @@ if (__builtin_expect (hook != NULL, 0))
 
 It checks the value of `__free_hook`. If it's not NULL, it will call the hook function first. Here, we would like to use **one-gadget-RCE**. Since hook function is called in the libc, the constraints of **one-gadget** are usually satisfied.
 
-## Use printf to trigger malloc and free
+## 🔧 Use printf to trigger malloc and free
 
 Look into the source of printf, there are several places which may trigger malloc. Take [vfprintf.c line 1470](https://code.woboq.org/userspace/glibc/stdio-common/vfprintf.c.html#1470) for example:
 
@@ -709,12 +709,12 @@ More details:
 * [THREAD_GETMEM](https://code.woboq.org/userspace/glibc/sysdeps/x86_64/nptl/tls.h.html#_M/THREAD_GETMEM)
 
 
-### conclusion
+### Overall 
 
 * The minimum size of width to trigger `malloc` & `free` is 65537 most of the time.
 * If there is a Format String Vulnerability and the program ends right after calling `printf(buf)`, we can hijack `__malloc_hook` or `__free_hook` with `one-gadget` and use the trick mentioned above to trigger `malloc` & `free` then we can still get the shell even there is no more function call or sth after `printf(buf)`.
 
-## Use execveat to open a shell
+## 🎯 Use execveat to open a shell
 
 When it comes to opening a shell with system call, `execve` always pops up in mind. However, it's not always easily available due to the lack of gadgets or others constraints.  
 Actually, there is a system call, `execveat`, with following prototype:
