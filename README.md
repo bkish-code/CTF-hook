@@ -261,7 +261,7 @@ binsh_addr = base + binsh_offset
   * This means you know: `libc_base = leaked_libc_addr - known_offset`
   * Once you know the libc base, you can compute the absolute address of any libc symbol:
     * environ
-      * `environ` iis a global pointer inside libc that always points to the **current stack frame**
+      * `environ` is a global pointer inside libc that always points to the **current stack frame**
     * __libc_start_main_ret
     * system
     * /bin/sh
