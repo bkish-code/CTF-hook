@@ -267,24 +267,24 @@ binsh_addr = base + binsh_offset
 
 ### Requirements
 
-* You have already leaked a libc base address
-  * This means you know: `libc_base = leaked_libc_addr - known_offset`
-  * Once you know the libc base, you can compute the absolute address of any libc symbol:
-    * environ
-      * `environ` is a global pointer inside libc that always points to the **current stack frame**
-    * __libc_start_main_ret
-    * system
-    * /bin/sh
-    * etc.
-* You can leak the content of arbitrary address (arbitrary read primitive)
-  * Your exploit includes one of the following:
-    * `printf("%s", (char*)address);`
-    * `puts(*unit64_t*)address);`
-    * a custom "read memory at address X" function.
-  * If you can read from any address, you can compute:
-    * addr_environ
-      * You can leak: `stack_pointer = *(addr_environ)`.
-      * This is a **real stack address** inside the running process.
+1. You have already leaked a libc base address
+   * This means you know: `libc_base = leaked_libc_addr - known_offset`
+   * Once you know the libc base, you can compute the absolute address of any libc symbol:
+     * environ
+       * `environ` is a global pointer inside libc that always points to the **current stack frame**
+   * __libc_start_main_ret
+   *  system
+   *   /bin/sh
+   *    etc.     
+2. You can leak the content of arbitrary address (arbitrary read primitive)
+   * Your exploit includes one of the following:
+     *  `printf("%s", (char*)address);`
+     *  `puts(*unit64_t*)address);`
+     *  a custom "read memory at address X" function.
+   *  If you can read from any address, you can compute:
+     * addr_environ
+     * You can leak: `stack_pointer = *(addr_environ)`.
+     * This is a **real stack address** inside the running process.
      
 ### Stack Leak
 
