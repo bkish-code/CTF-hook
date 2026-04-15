@@ -93,7 +93,7 @@ E.g.
 
 ### strcpy
 
-Let's use a second buffer: `char buf2[60]`
+Let's continue to use `char buf[40]` and use a second buffer `char buf2[60]`:
 
 * `strcpy(buf, buf2)`
     * The function does not have boundary checks.
@@ -110,7 +110,7 @@ Let's use a second buffer: `char buf2[60]`
 
 ### strcat
 
-Let's continue to use `char buf[40]` and a second buffer `char buf2[60]`:
+We have `char buf[40]` and buffer `char buf2[60]`:
 
 * `strcat(buf, buf2)`
     * Of course, it may cause **overflow** if `length(buf)` isn't large enough.
