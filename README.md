@@ -21,7 +21,7 @@ CTF-pwn-tips
 
 ## 💥 Overflow
 
-In the demonstrations, use the following:
+In the following vulnerabilities, use the following:
 * `char buf[40]` - has 39 bytes for characters and 1 byte for \0 null terminator.
 * `signed int num` - holds 4 byte integer, negative or positive.
 
