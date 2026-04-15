@@ -2,7 +2,7 @@
 ===========================
 
 ## 📝 Attribution
-This README.md file is adapted from **Naetw’s CTF-pwn-tips**:
+This **README** file is adapted from **Naetw’s CTF-pwn-tips**:
 https://github.com/Naetw/CTF-pwn-tips  
 Modifications include restructuring, added examples, and updated explanations.
 
