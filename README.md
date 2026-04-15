@@ -230,9 +230,9 @@ system_off = libc.symbols['system']
 
 You must first determine the **libc base address** before locating `/bin/sh`, because the string’s final runtime address is:
 
-'''c
+```code
 binsh_addr = libc_base + offset_of("/bin/sh")
-'''
+```
 
 >[!WARNING] The offset should be fixed but the base address of libc is not fixed due to ASLR. 
 
