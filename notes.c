@@ -1,9 +1,4 @@
 /*
- * Brian Kishiyama
- * CSC 748 - Spring 2026
- * Project: Vulnerable Notes Manager
- *
- * This is my C program for the final project.
  * This program has vulnerabilities to be exploited.
  */
 
