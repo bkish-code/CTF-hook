@@ -2,7 +2,7 @@ CTF-pwn-tips
 ===========================
 
 
-# 📚 Catalog
+# 📚 Table of Contents
 * [Overflow](#overflow)
 * [Find string in gdb](#find-string-in-gdb)
 * [Binary Service](#binary-service)
