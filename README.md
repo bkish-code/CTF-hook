@@ -19,7 +19,7 @@ CTF-pwn-tips
 * [Use execveat to open a shell](#use-execveat-to-open-a-shell)
 
 
-## 💥 Overflow
+## 🌧️ Overflow
 
 In the following vulnerabilities, use the following:
 * `char buf[40]` - has 39 bytes for characters and 1 byte for \0 null terminator.
