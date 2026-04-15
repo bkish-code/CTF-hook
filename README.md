@@ -1,8 +1,13 @@
-CTF-pwn-tips
+# CTF-pwn-tips
 ===========================
 
+## Attribution
+This repository is adapted from **Naetw’s CTF-pwn-tips**:
+https://github.com/Naetw/CTF-pwn-tips  
+Modifications include restructuring, added examples, and updated explanations.
 
-# 📚 Table of Contents
+
+## 📚 Table of Contents
 * [Overflow](#overflow)
 * [Find string in gdb](#find-string-in-gdb)
 * [Binary Service](#binary-service)
