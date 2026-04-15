@@ -113,13 +113,23 @@ Let's continue to use `char buf[40]` and use a second buffer `char buf2[60]`:
 We have `char buf[40]` and buffer `char buf2[60]`:
 
 * `strcat(buf, buf2)`
-    * Of course, it may cause **overflow** if `length(buf)` isn't large enough.
-    * It puts NULL byte at the end, it may cause **one-byte-overflow**.
-    * In some cases, we can use this NULL byte to change stack address or heap address.
+    * First, it will copy buf up to its '\0'.
+    * It then copies buf2 up to its '\0' - with no length checking.
+    * buf2 is added to the end of buf with a '\0' added.
+      * buf = buf's original content + buf2's content + '\0'.
+      * buf2 remains unchanged.
+    * This may cause a **full overflow** if `length(buf)` isn't large enough.
+      * strcat copies all of buf2 into buf even if buf cannot hold it.
+    * It may cause a **one-byte-overflow** since buf needs to hold buf + buf2 + **null terminator** at the end.
+      * In some cases, we can use this NULL terminator can change the stack address or heap address.
     * **pwnable**
 
 * `strncat(buf, buf2, n)`
     * Almost the same as `strcat`, but with size limitation.
+    * n indicates how many of buf2's bytes will be added to buf.
+    * buf may be overwritten after the strncat function:
+      * buf = original content of buf + n bytes of buf2 + '\0'
+        * buf must be large enough to hold the content; otherwise, an **overflow**.
     * **pwnable**
     * E.g. [Seccon CTF quals 2016 jmper](https://github.com/ctfs/write-ups-2016/tree/master/seccon-ctf-quals-2016/exploit/jmper-300)
 
