@@ -344,7 +344,7 @@ $12 = 0x7fffffffe230
 
 See the [glibc manual](https://www.gnu.org/software/libc/manual/html_node/Program-Arguments.html) for details about `environ`.
 
-## 🪓 Fork problem in gdb
+## 🍴 Fork problem in gdb
 
 When a program calls `fork()`, two processes exist: the **parent** and the **child**. GDB can only follow one of them. So, when debugging a program that calls `fork()` in **GDB**, you must explicitly tell *GDB* which process to follow. By default, standard GDB follows the *parent* process, while GDB‑PEDA is configured to follow the *child* process. Use one of the following commands to indicate which process to follow:
 
@@ -451,7 +451,7 @@ LIBC.srand(LIBC.time(0))
 addr = LIBC.rand() & 0xfffff000
 ```
 
-## 🪸 Make Your Stack Executable
+## 🧱 Make Your Stack Executable
 
 In modern exploitations (ROP, ret2libc, syscall chains), the stack is not executable by default. You only need an executable stack for classic stack‑shellcode injection challenges.
 
