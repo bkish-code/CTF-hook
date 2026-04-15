@@ -45,7 +45,7 @@ c. `scanf("%40s", buf)`
 d. `scanf("%d", &num)`   
    * This allows the user to enter a negative or positive integer.
    * This function is used with `alloca(num)`
-      * alloca() is designed for positive numbers only. It makes the stack grow downward, or from higher to lower memory addresses.
+      * alloca() is designed for positive numbers only. It makes the stack grow downward, or from higher to lower memory addresses, like the stack.
          * It uses `sub esp, eax  ; eax = n`
       * alloca(negative_number) makes the stack grow upward, towards higher memory addresses, in the wrong direction.
       * alloca does not check if numbers are > 0; *num* should be an *unsigned integer*.
