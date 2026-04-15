@@ -1,4 +1,4 @@
-# 💥 CTF-pwn-tips
+# 💥 Naetw's CTF-pwn-tips
 
 ## 📝 Attribution
 This **README** file is adapted from **Naetw’s CTF-pwn-tips**:
